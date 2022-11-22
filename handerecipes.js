@@ -1,6 +1,7 @@
 "use strict";
 
 const fs = require("fs");
+let { render } = require("mustache");
 
 const args = process.argv.slice(2);
 let fileName;
@@ -32,7 +33,42 @@ data.items.forEach((element) => {
   i++;
   console.log(i);
   console.log(element.slug);
-  recipes.push(element);
+  const recipe = (({
+    seoName,
+    descriptionMarkdown,
+    prepTime,
+    totalTime,
+    imageLink,
+    slug,
+    steps,
+    websiteUrl,
+  }) => ({
+    seoName,
+    descriptionMarkdown,
+    prepTime,
+    totalTime,
+    imageLink,
+    slug,
+    steps,
+    websiteUrl,
+  }))(element);
+
+  let template = `---
+title: ${recipe.seoName}
+image: ${recipe.imageLink}
+sourceURL: ${recipe.websiteUrl}
+servings: 2
+time: ${recipe.totalTime}
+---
+
+${recipe.descriptionMarkdown}
+`;
+
+  //   console.log(recipe);
+  recipes.push(recipe);
+
+  let output = render(template, element);
+  fs.writeFileSync(`./recipes/${recipe.slug}.md`, output);
 });
 
 let jsonContent = JSON.stringify(recipes);
